@@ -1,16 +1,39 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Limbus</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Project Limbus</title>
     <script src="../Project Limbus/js/script.js" defer></script>
     <link rel="stylesheet" href="../Project Limbus/css/styles.css">
 </head>
 <body>
-    <canvas id="gameCanvas"></canvas>
-    <video id="bgVideo" autoplay loop muted>
-        <source src="../Project Limbus/img/arena/Arena - Erlking 3.mp4" type="video/mp4">
+  <!-- Tela Inicial -->
+  <div id="start-screen" class="screen">
+    <h1>Meu Jogo</h1>
+    <button id="btn-play">Jogar</button>
+    <button id="btn-instructions">Instruções</button>
+  </div>
+
+  <!-- UI de Seleção de Personagens -->
+  <div id="selection-screen" class="screen hidden">
+    <h2>Selecione 5 Personagens</h2>
+    <div id="character-grid"></div>
+    <div id="selected-slots">
+      <p>Personagens Selecionados:</p>
+      <div id="slots"></div>
+    </div>
+    <button id="btn-start-battle" class="hidden">Start Battle</button>
+  </div>
+
+  <!-- Tela de Batalha -->
+  <div id="battle-screen" class="screen hidden">
+    <canvas id="battle-canvas"></canvas>
+    <video id="bg-video" autoplay loop muted>
+       <source src="../Project Limbus/img/arena/Arena - Erlking 3.mp4" type="video/mp4">
     </video>
+    <div id="skills-ui"></div>
+  </div>
+
 </body>
 </html>
