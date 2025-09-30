@@ -15,56 +15,190 @@ canvas.height = window.innerHeight;
 
 const bgVideo = document.getElementById("bg-video");
 
-const characters = [];
 const selectedCharacters = [];
 
-const totalCharacters = 12;
+// Lista de personagens — declarados manualmente
+const allCharacters = [
+  {
+    id: 1,
+    name: "Yi Sang",
+    sprites: {
+      idle: "../Project Limbus/img/Sinners/10101_YiSang_BaseAppearance/idle.gif",
+      skill1: "../Project Limbus/img/animações/output/LCB_Sinner_Yi_Sang_Skill_1.gif",
+      skill2: "../Project Limbus/img/animações/output/LCB_Sinner_Yi_Sang_Skill_2.gif",
+      skill3: "../Project Limbus/img/animações/output/LCB_Sinner_Yi_Sang_Skill_3.gif",
+      evade: "../Project Limbus/img/Sinners/10101_YiSang_BaseAppearance/miss.png",
+    },
+    currentSprite: "../Project Limbus/img/profile img/YiSang.png",
+  },
+  {
+    id: 2,
+    name: "Faust",
+    sprites: {
+      idle: "assets/characters/sinclair_idle.png",
+      skill1: "assets/characters/sinclair_skill1.png",
+      skill2: "assets/characters/sinclair_skill2.png",
+      skill3: "assets/characters/sinclair_skill3.png",
+      evade: "assets/characters/sinclair_evade.png",
+    },
+    currentSprite: "../Project Limbus/img/profile img/Faust.png",
+  },
+  {
+    id: 3,
+    name: "Don Quixote",
+    sprites: {
+      idle: "assets/characters/yisang_idle.png",
+      skill1: "assets/characters/yisang_skill1.png",
+      skill2: "assets/characters/yisang_skill2.png",
+      skill3: "assets/characters/yisang_skill3.png",
+      evade: "assets/characters/yisang_evade.png",
+    },
+    currentSprite: "../Project Limbus/img/profile img/donQuixote.png",
+  },
+  {
+    id: 4,
+    name: "Ryōshū",
+    sprites: {
+      idle: "assets/characters/donquixote_idle.png",
+      skill1: "assets/characters/donquixote_skill1.png",
+      skill2: "assets/characters/donquixote_skill2.png",
+      skill3: "assets/characters/donquixote_skill3.png",
+      evade: "assets/characters/donquixote_evade.png",
+    },
+    currentSprite: "../Project Limbus/img/profile img/Ryoshu.png",
+  },
+  {
+    id: 5,
+    name: "Meursault",
+    sprites: {
+      idle: "assets/characters/ryoshu_idle.png",
+      skill1: "assets/characters/ryoshu_skill1.png",
+      skill2: "assets/characters/ryoshu_skill2.png",
+      skill3: "assets/characters/ryoshu_skill3.png",
+      evade: "assets/characters/ryoshu_evade.png",
+    },
+    currentSprite: "../Project Limbus/img/profile img/Meursault.png",
+  },
+  {
+    id: 6,
+    name: "Hong Lu",
+    sprites: {
+      idle: "assets/characters/meursault_idle.png",
+      skill1: "assets/characters/meursault_skill1.png",
+      skill2: "assets/characters/meursault_skill2.png",
+      skill3: "assets/characters/meursault_skill3.png",
+      evade: "assets/characters/meursault_evade.png",
+    },
+    currentSprite: "../Project Limbus/img/profile img/HongLu.png",
+  },
+  {
+    id: 7,
+    name: "Heathcliff",
+    sprites: {
+      idle: "assets/characters/honglu_idle.png",
+      skill1: "assets/characters/honglu_skill1.png",
+      skill2: "assets/characters/honglu_skill2.png",
+      skill3: "assets/characters/honglu_skill3.png",
+      evade: "assets/characters/honglu_evade.png",
+    },
+    currentSprite: "../Project Limbus/img/profile img/Heatcliff.png",
+  },
+  {
+    id: 8,
+    name: "Ishmael",
+    sprites: {
+      idle: "assets/characters/heathcliff_idle.png",
+      skill1: "assets/characters/heathcliff_skill1.png",
+      skill2: "assets/characters/heathcliff_skill2.png",
+      skill3: "assets/characters/heathcliff_skill3.png",
+      evade: "assets/characters/heathcliff_evade.png",
+    },
+    currentSprite: "../Project Limbus/img/profile img/Ishmael.png",
+  },
+  {
+    id: 9,
+    name: "Rodion",
+    sprites: {
+      idle: "assets/characters/ishmael_idle.png",
+      skill1: "assets/characters/ishmael_skill1.png",
+      skill2: "assets/characters/ishmael_skill2.png",
+      skill3: "assets/characters/ishmael_skill3.png",
+      evade: "assets/characters/ishmael_evade.png",
+    },
+    currentSprite: "../Project Limbus/img/profile img/Rodion.png",
+  },
+  {
+    id: 10,
+    name: "Sinclair",
+    sprites: {
+      idle: "assets/characters/rodion_idle.png",
+      skill1: "assets/characters/rodion_skill1.png",
+      skill2: "assets/characters/rodion_skill2.png",
+      skill3: "assets/characters/rodion_skill3.png",
+      evade: "assets/characters/rodion_evade.png",
+    },
+    currentSprite: "../Project Limbus/img/profile img/Sinclair.png",
+  },
+  {
+    id: 11,
+    name: "Outis",
+    sprites: {
+      idle: "assets/characters/faust_idle.png",
+      skill1: "assets/characters/faust_skill1.png",
+      skill2: "assets/characters/faust_skill2.png",
+      skill3: "assets/characters/faust_skill3.png",
+      evade: "assets/characters/faust_evade.png",
+    },
+    currentSprite: "../Project Limbus/img/profile img/Outis.png",
+  },
+  {
+    id: 12,
+    name: "Gregor",
+    sprites: {
+      idle: "assets/characters/outis_idle.png",
+      skill1: "assets/characters/outis_skill1.png",
+      skill2: "assets/characters/outis_skill2.png",
+      skill3: "assets/characters/outis_skill3.png",
+      evade: "assets/characters/outis_evade.png",
+    },
+    currentSprite: "../Project Limbus/img/profile img/Gregor.png",
+  }
+];
 
-for (let i = 1; i <= totalCharacters; i++) {
-  characters.push({
-    id: i,
-    name: `Char ${i}`,
-    idle: `assets/characters/char${i}_idle.png`,
-    attack: `assets/characters/char${i}_attack.png`,
-    currentSprite: `assets/characters/char${i}_idle.png`
-  });
-}
-
-// Renderiza os personagens na UI
-characters.forEach((char, index) => {
+// Criação dos cards na tela de seleção
+allCharacters.forEach((char) => {
   const card = document.createElement("div");
   card.classList.add("character-card");
-  card.style.backgroundImage = `url(${char.idle})`;
+  card.style.backgroundImage = `url(${char.sprites.idle})`;
 
   card.addEventListener("click", () => {
-    if (card.classList.contains("selected")) return;
-
-    if (selectedCharacters.length < 5) {
-      card.classList.add("selected");
+    const index = selectedCharacters.findIndex(c => c.id === char.id);
+    if (index !== -1) {
+      selectedCharacters.splice(index, 1);
+      card.classList.remove("selected");
+    } else if (selectedCharacters.length < 5) {
       selectedCharacters.push({ ...char });
-      updateSlots();
+      card.classList.add("selected");
     }
-
-    if (selectedCharacters.length === 5) {
-      btnStartBattle.classList.remove("hidden");
-    }
+    updateSlots();
   });
 
   characterGrid.appendChild(card);
 });
 
-// Atualiza os slots selecionados
+// Atualiza miniaturas dos selecionados
 function updateSlots() {
   slotsContainer.innerHTML = "";
-  selectedCharacters.forEach((char, index) => {
+  selectedCharacters.forEach(char => {
     const img = document.createElement("img");
-    img.src = char.idle;
-    img.width = 50;
+    img.src = char.sprites.idle;
     slotsContainer.appendChild(img);
   });
+
+  btnStartBattle.classList.toggle("hidden", selectedCharacters.length !== 5);
 }
 
-// Transição para batalha
+// Transições
 btnPlay.onclick = () => {
   startScreen.classList.add("hidden");
   selectionScreen.classList.remove("hidden");
@@ -74,19 +208,35 @@ btnStartBattle.onclick = () => {
   selectionScreen.classList.add("hidden");
   battleScreen.classList.remove("hidden");
   bgVideo.play();
-  drawBattle();
-  renderSkillsUI();
+  setupBattle();
 };
 
-// Função para desenhar os personagens na tela de batalha
-function drawBattle() {
-  ctx.drawImage(bgVideo, 0, 0, canvas.width, canvas.height);
+// Setup da batalha
+function setupBattle() {
+  preloadSprites();
+  setupSkillsUI();
+  setupPortraits();
+  drawBattle();
+}
 
+// Precarrega imagens para evitar flicker
+function preloadSprites() {
+  selectedCharacters.forEach(char => {
+    char.img = new Image();
+    char.img.src = char.currentSprite;
+  });
+}
+
+// Renderiza personagens no canvas
+function drawBattle() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const spacing = canvas.width / (selectedCharacters.length + 1);
   selectedCharacters.forEach((char, index) => {
     const img = new Image();
     img.src = char.currentSprite;
-    const x = 100 + index * 150;
-    const y = canvas.height / 2 - 100;
+    const x = spacing * (index + 1) - 50;
+    const y = canvas.height / 2 - 50;
     img.onload = () => {
       ctx.drawImage(img, x, y, 100, 100);
     };
@@ -95,22 +245,48 @@ function drawBattle() {
   requestAnimationFrame(drawBattle);
 }
 
-// UI de habilidades
-function renderSkillsUI() {
-  for (let i = 0; i < 10; i++) {
-    const skill = document.createElement("img");
-    skill.src = `assets/skills/skill${(i % 5) + 1}.png`;
+// Cria a UI de skills
+function setupSkillsUI() {
+  skillsUI.innerHTML = "";
 
-    skill.onclick = () => {
-      const target = selectedCharacters[i % 5];
-      target.currentSprite = target.attack;
+  const skillGrid = document.createElement("div");
+  skillGrid.classList.add("skills-grid");
+  skillsUI.appendChild(skillGrid);
 
-      // Reverter para idle após 1 segundo
+  selectedCharacters.forEach(char => {
+    for (let i = 0; i < 3; i++) addSkillButton(char, "skill1", skillGrid);
+    for (let i = 0; i < 2; i++) addSkillButton(char, "skill2", skillGrid);
+    addSkillButton(char, "skill3", skillGrid);
+  });
+
+  const portraits = document.createElement("div");
+  portraits.id = "portraits";
+  skillsUI.appendChild(portraits);
+
+  selectedCharacters.forEach(char => {
+    const img = document.createElement("img");
+    img.src = char.sprites.idle;
+    img.title = `${char.name} - Evade`;
+    img.onclick = () => {
+      char.currentSprite = char.sprites.evade;
       setTimeout(() => {
-        target.currentSprite = target.idle;
+        char.currentSprite = char.sprites.idle;
       }, 1000);
     };
+    portraits.appendChild(img);
+  });
+}
 
-    skillsUI.appendChild(skill);
-  }
+// Cria botão de skill
+function addSkillButton(character, skillType, container) {
+  const img = document.createElement("img");
+  img.src = `assets/skills/${skillType}.png`;
+  img.title = `${character.name} - ${skillType.toUpperCase()}`;
+  img.onclick = () => {
+    character.currentSprite = character.sprites[skillType];
+    setTimeout(() => {
+      character.currentSprite = character.sprites.idle;
+    }, 1000);
+  };
+  container.appendChild(img);
 }
