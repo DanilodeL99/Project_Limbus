@@ -8,6 +8,7 @@ const characterGrid = document.getElementById("character-grid");
 const slotsContainer = document.getElementById("slots");
 const skillsUI = document.getElementById("skills-ui");
 
+
 const canvas = document.getElementById("battle-canvas");
 const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth;
@@ -23,7 +24,7 @@ const allCharacters = [
     id: 1,
     name: "Yi Sang",
     sprites: {
-      idle: "../Project Limbus/img/Sinners/10101_YiSang_BaseAppearance/idle.gif",
+      idle: "../Project Limbus/img/profile img/YiSang.png",
       skill1: "../Project Limbus/img/animações/output/LCB_Sinner_Yi_Sang_Skill_1.gif",
       skill2: "../Project Limbus/img/animações/output/LCB_Sinner_Yi_Sang_Skill_2.gif",
       skill3: "../Project Limbus/img/animações/output/LCB_Sinner_Yi_Sang_Skill_3.gif",
@@ -35,7 +36,7 @@ const allCharacters = [
     id: 2,
     name: "Faust",
     sprites: {
-      idle: "assets/characters/sinclair_idle.png",
+      idle: "../Project Limbus/img/profile img/Faust.png",
       skill1: "assets/characters/sinclair_skill1.png",
       skill2: "assets/characters/sinclair_skill2.png",
       skill3: "assets/characters/sinclair_skill3.png",
@@ -47,7 +48,7 @@ const allCharacters = [
     id: 3,
     name: "Don Quixote",
     sprites: {
-      idle: "assets/characters/yisang_idle.png",
+      idle: "../Project Limbus/img/profile img/donQuixote.png",
       skill1: "assets/characters/yisang_skill1.png",
       skill2: "assets/characters/yisang_skill2.png",
       skill3: "assets/characters/yisang_skill3.png",
@@ -59,7 +60,7 @@ const allCharacters = [
     id: 4,
     name: "Ryōshū",
     sprites: {
-      idle: "assets/characters/donquixote_idle.png",
+      idle: "../Project Limbus/img/profile img/Ryoshu.png",
       skill1: "assets/characters/donquixote_skill1.png",
       skill2: "assets/characters/donquixote_skill2.png",
       skill3: "assets/characters/donquixote_skill3.png",
@@ -71,7 +72,7 @@ const allCharacters = [
     id: 5,
     name: "Meursault",
     sprites: {
-      idle: "assets/characters/ryoshu_idle.png",
+      idle: "../Project Limbus/img/profile img/Meursault.png",
       skill1: "assets/characters/ryoshu_skill1.png",
       skill2: "assets/characters/ryoshu_skill2.png",
       skill3: "assets/characters/ryoshu_skill3.png",
@@ -83,7 +84,7 @@ const allCharacters = [
     id: 6,
     name: "Hong Lu",
     sprites: {
-      idle: "assets/characters/meursault_idle.png",
+      idle: "../Project Limbus/img/profile img/HongLu.png",
       skill1: "assets/characters/meursault_skill1.png",
       skill2: "assets/characters/meursault_skill2.png",
       skill3: "assets/characters/meursault_skill3.png",
@@ -95,7 +96,7 @@ const allCharacters = [
     id: 7,
     name: "Heathcliff",
     sprites: {
-      idle: "assets/characters/honglu_idle.png",
+      idle: "../Project Limbus/img/profile img/Heatcliff.png",
       skill1: "assets/characters/honglu_skill1.png",
       skill2: "assets/characters/honglu_skill2.png",
       skill3: "assets/characters/honglu_skill3.png",
@@ -107,7 +108,7 @@ const allCharacters = [
     id: 8,
     name: "Ishmael",
     sprites: {
-      idle: "assets/characters/heathcliff_idle.png",
+      idle: "../Project Limbus/img/profile img/Ishmael.png",
       skill1: "assets/characters/heathcliff_skill1.png",
       skill2: "assets/characters/heathcliff_skill2.png",
       skill3: "assets/characters/heathcliff_skill3.png",
@@ -119,7 +120,7 @@ const allCharacters = [
     id: 9,
     name: "Rodion",
     sprites: {
-      idle: "assets/characters/ishmael_idle.png",
+      idle: "../Project Limbus/img/profile img/Rodion.png",
       skill1: "assets/characters/ishmael_skill1.png",
       skill2: "assets/characters/ishmael_skill2.png",
       skill3: "assets/characters/ishmael_skill3.png",
@@ -131,7 +132,7 @@ const allCharacters = [
     id: 10,
     name: "Sinclair",
     sprites: {
-      idle: "assets/characters/rodion_idle.png",
+      idle: "../Project Limbus/img/profile img/Sinclair.png",
       skill1: "assets/characters/rodion_skill1.png",
       skill2: "assets/characters/rodion_skill2.png",
       skill3: "assets/characters/rodion_skill3.png",
@@ -143,7 +144,7 @@ const allCharacters = [
     id: 11,
     name: "Outis",
     sprites: {
-      idle: "assets/characters/faust_idle.png",
+      idle: "../Project Limbus/img/profile img/Outis.png",
       skill1: "assets/characters/faust_skill1.png",
       skill2: "assets/characters/faust_skill2.png",
       skill3: "assets/characters/faust_skill3.png",
@@ -155,7 +156,7 @@ const allCharacters = [
     id: 12,
     name: "Gregor",
     sprites: {
-      idle: "assets/characters/outis_idle.png",
+      idle: "../Project Limbus/img/profile img/Gregor.png",
       skill1: "assets/characters/outis_skill1.png",
       skill2: "assets/characters/outis_skill2.png",
       skill3: "assets/characters/outis_skill3.png",
@@ -165,11 +166,11 @@ const allCharacters = [
   }
 ];
 
-// Criação dos cards na tela de seleção
+//  Criação dos cards na tela de seleção
 allCharacters.forEach((char) => {
   const card = document.createElement("div");
   card.classList.add("character-card");
-  card.style.backgroundImage = `url(${char.sprites.idle})`;
+  card.innerHTML = `<img src="${char.sprites.idle}" alt="${char.name}">`;
 
   card.addEventListener("click", () => {
     const index = selectedCharacters.findIndex(c => c.id === char.id);
@@ -188,14 +189,12 @@ allCharacters.forEach((char) => {
 
 // Atualiza miniaturas dos selecionados
 function updateSlots() {
-  slotsContainer.innerHTML = "";
-  selectedCharacters.forEach(char => {
-    const img = document.createElement("img");
-    img.src = char.sprites.idle;
-    slotsContainer.appendChild(img);
-  });
-
-  btnStartBattle.classList.toggle("hidden", selectedCharacters.length !== 5);
+  // Verifica se 5 personagens foram selecionados
+  if (selectedCharacters.length === 5) {
+    btnStartBattle.classList.remove("hidden");  // Torna o botão visível
+  } else {
+    btnStartBattle.classList.add("hidden");     // Esconde o botão se menos de 5 forem selecionados
+  }
 }
 
 // Transições
@@ -205,6 +204,7 @@ btnPlay.onclick = () => {
 };
 
 btnStartBattle.onclick = () => {
+  console.log("Botão 'Start Battle' clicado!");  // Log para verificar se a função está sendo chamada
   selectionScreen.classList.add("hidden");
   battleScreen.classList.remove("hidden");
   bgVideo.play();
@@ -245,48 +245,3 @@ function drawBattle() {
   requestAnimationFrame(drawBattle);
 }
 
-// Cria a UI de skills
-function setupSkillsUI() {
-  skillsUI.innerHTML = "";
-
-  const skillGrid = document.createElement("div");
-  skillGrid.classList.add("skills-grid");
-  skillsUI.appendChild(skillGrid);
-
-  selectedCharacters.forEach(char => {
-    for (let i = 0; i < 3; i++) addSkillButton(char, "skill1", skillGrid);
-    for (let i = 0; i < 2; i++) addSkillButton(char, "skill2", skillGrid);
-    addSkillButton(char, "skill3", skillGrid);
-  });
-
-  const portraits = document.createElement("div");
-  portraits.id = "portraits";
-  skillsUI.appendChild(portraits);
-
-  selectedCharacters.forEach(char => {
-    const img = document.createElement("img");
-    img.src = char.sprites.idle;
-    img.title = `${char.name} - Evade`;
-    img.onclick = () => {
-      char.currentSprite = char.sprites.evade;
-      setTimeout(() => {
-        char.currentSprite = char.sprites.idle;
-      }, 1000);
-    };
-    portraits.appendChild(img);
-  });
-}
-
-// Cria botão de skill
-function addSkillButton(character, skillType, container) {
-  const img = document.createElement("img");
-  img.src = `assets/skills/${skillType}.png`;
-  img.title = `${character.name} - ${skillType.toUpperCase()}`;
-  img.onclick = () => {
-    character.currentSprite = character.sprites[skillType];
-    setTimeout(() => {
-      character.currentSprite = character.sprites.idle;
-    }, 1000);
-  };
-  container.appendChild(img);
-}

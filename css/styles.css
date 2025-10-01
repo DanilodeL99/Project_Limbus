@@ -1,140 +1,133 @@
 /* Reset */
-body,
-html {
-    margin: 0;
-    padding: 0;
-    font-family: sans-serif;
-    overflow: hidden;
+body, html {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+  overflow: hidden;
 }
 
 /* Telas */
 .screen {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: #111;
-    color: white;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 0.5s ease;
-    z-index: 1;
+  position: absolute;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #111;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.5s ease;
+  z-index: 1;
 }
 
 .hidden {
-    opacity: 0;
-    pointer-events: none;
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* Seleção de personagens */
 #character-grid {
-    display: grid;
-    grid-template-columns: repeat(6, 100px);
-    /* 6 colunas */
-    grid-template-rows: repeat(2, 100px);
-    /* 2 fileiras */
-    gap: 10px;
-    margin: 20px;
+  display: grid;
+  grid-template-columns: repeat(6, 100px); /* 6 colunas */
+  grid-template-rows: repeat(2, 100px);    /* 2 fileiras */
+  gap: 10px;
+  margin: 20px;
 }
 
 .character-card {
-    width: 100px;
-    height: 100px;
-    background-color: #333;
-    background-size: cover;
-    background-position: center;
-    border: 2px solid white;
-    cursor: pointer;
-    transition: 0.2s;
+  width: 100px;
+  height: 100px;
+  background-color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 2px solid white;
+  border-radius: 10px;
+  transition: 0.3s ease;
+}
+
+.character-card img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: cover;
 }
 
 .character-card.selected {
-    border-color: gold;
+  border-color: gold;
+  box-shadow: 0 0 15px gold;
 }
 
-#slots {
-    display: flex;
-    gap: 10px;
-    margin: 10px 0;
+.selected-characters {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  justify-content: center;
 }
 
-#slots img {
-    width: 50px;
-    height: 50px;
+.selected-characters img {
+  width: 60px;
+  height: 60px;
+  border: 2px solid gold;
+  border-radius: 5px;
 }
 
 /* Vídeo de fundo */
 #bg-video {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    object-fit: cover;
-    z-index: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  z-index: 0;
 }
 
 /* Canvas de batalha */
 canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 1;
+  position: absolute;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
 }
 
 /* UI de skills e retratos */
 #skills-ui {
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 2;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .skills-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 60px);
-    grid-template-rows: repeat(2, 60px);
-    gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(5, 60px);
+  grid-template-rows: repeat(2, 60px);
+  gap: 10px;
 }
 
 .skills-grid img {
-    width: 60px;
-    height: 60px;
-    cursor: pointer;
+  width: 60px;
+  height: 60px;
+  cursor: pointer;
 }
 
 #portraits {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
 }
 
 #portraits img {
-    width: 50px;
-    height: 50px;
-    cursor: pointer;
-    border: 2px solid white;
-}
-
-.selected-characters {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
-    justify-content: center;
-}
-
-.selected-characters img {
-    width: 60px;
-    height: 60px;
-    border: 2px solid gold;
-    border-radius: 5px;
+  width: 50px;
+  height: 50px;
+  cursor: pointer;
+  border: 2px solid white;
 }
