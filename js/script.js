@@ -15,10 +15,13 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
 const bgVideo = document.getElementById("bg-video");
+document.getElementById('start-screen').addEventListener('click', () => {
+  document.getElementById('start-screen').classList.add('hidden');
+  document.getElementById('selection-screen').classList.remove('hidden');
+});
 
 const selectedCharacters = [];
 
-// Lista de personagens — declarados manualmente
 const allCharacters = [
   {
     id: 1,
@@ -166,7 +169,6 @@ const allCharacters = [
   }
 ];
 
-//  Criação dos cards na tela de seleção
 allCharacters.forEach((char) => {
   const card = document.createElement("div");
   card.classList.add("character-card");
@@ -187,24 +189,24 @@ allCharacters.forEach((char) => {
   characterGrid.appendChild(card);
 });
 
-// Atualiza miniaturas dos selecionados
 function updateSlots() {
-  // Verifica se 5 personagens foram selecionados
-  if (selectedCharacters.length === 5) {
-    btnStartBattle.classList.remove("hidden");  // Torna o botão visível
+
+  if (selectedCharacters.length >= 1) {
+    btnStartBattle.classList.remove("hidden"); 
   } else {
-    btnStartBattle.classList.add("hidden");     // Esconde o botão se menos de 5 forem selecionados
+    btnStartBattle.classList.add("hidden");    
   }
 }
 
 // Transições
-btnPlay.onclick = () => {
-  startScreen.classList.add("hidden");
-  selectionScreen.classList.remove("hidden");
-};
+document.getElementById('start-screen').addEventListener('click', () => {
+  document.getElementById('start-screen').classList.add('hidden');
+  document.getElementById('selection-screen').classList.remove('hidden');
+});
+
 
 btnStartBattle.onclick = () => {
-  console.log("Botão 'Start Battle' clicado!");  // Log para verificar se a função está sendo chamada
+  console.log("Botão 'Start Battle' clicado!");  
   selectionScreen.classList.add("hidden");
   battleScreen.classList.remove("hidden");
   bgVideo.play();

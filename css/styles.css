@@ -22,6 +22,44 @@ body, html {
   z-index: 1;
 }
 
+/* Vídeo da tela inicial */
+#start-bg-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  z-index: 0;
+}
+
+/* Mensagem central da tela inicial */
+.start-message {
+  z-index: 1;
+  color: gold;
+  font-size: 32px;
+  font-weight: bold;
+  text-align: center;
+  text-shadow: 0 0 10px gold;
+  user-select: none;
+  animation: pulse-gold 2s infinite;
+}
+
+@keyframes pulse-gold {
+  0% {
+    text-shadow: 0 0 10px gold, 0 0 20px gold;
+    opacity: 1;
+  }
+  50% {
+    text-shadow: 0 0 20px #ffd700, 0 0 30px #ffd700;
+    opacity: 0.7;
+  }
+  100% {
+    text-shadow: 0 0 10px gold, 0 0 20px gold;
+    opacity: 1;
+  }
+}
+
 .hidden {
   opacity: 0;
   pointer-events: none;
@@ -130,4 +168,93 @@ canvas {
   height: 50px;
   cursor: pointer;
   border: 2px solid white;
+}
+
+#combat-ui {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 3;
+}
+
+#player-team {
+  position: absolute;
+  left: 50px;
+  top: 30%;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+#enemy-team {
+  position: absolute;
+  right: 50px;
+  top: 35%;
+}
+
+.character.boss img {
+  width: auto; 
+  height: 120px;
+}
+
+.character {
+  position: relative;
+}
+
+.character img {
+  width: 80px;
+  height: auto;
+}
+
+.health-bar {
+  width: auto;
+  height: 8px;
+  background-color: #333;
+  border: 1px solid #555;
+  margin-top: 5px;
+}
+
+.health-fill {
+  height: 100%;
+  width: 100%;
+  background-color: red;
+}
+
+/* Skills UI */
+#skills-ui-grid {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.skills-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 60px);
+  grid-template-rows: repeat(2, 60px);
+  gap: 10px;
+}
+
+.skill-icon {
+  width: 60px;
+  height: 60px;
+  border: 2px solid white;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* Botão roda */
+#start-turn-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+#start-turn-btn img {
+  width: 80px;
+  height: 80px;
 }
