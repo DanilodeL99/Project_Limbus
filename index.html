@@ -4,71 +4,53 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Project Limbus</title>
-  <script src="../Project Limbus/js/script.js" defer></script>
-  <link rel="stylesheet" href="../Project Limbus/css/styles.css">
-  <link rel="icon" type="image/jpg" href="../Project Limbus/img/UI/icone.jpg">
+  <script src="js/script.js" defer></script>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="icon" type="image/jpg" href="img/UI/icone.jpg">
 </head>
 <body>
+
 <!-- Tela Inicial -->
 <div id="start-screen" class="screen">
   <video id="start-bg-video" autoplay loop muted>
-    <source src="../Project Limbus/img/arena/Intro.mp4" type="video/mp4">
+    <source src="img/arena/Intro.mp4" type="video/mp4">
   </video>
   <div class="start-message">Clique em qualquer lugar para começar</div>
 </div>
 
+<!-- Seleção de Personagens -->
+<div id="selection-screen" class="screen hidden">
+  <h2>Selecione até 5 Personagens</h2>
+  <div id="character-grid"></div>
+  <button id="btn-start-battle" class="hidden">Iniciar Batalha</button>
+</div>
 
-  <!-- UI de Seleção de Personagens -->
-  <div id="selection-screen" class="screen hidden">
-    <h2>Selecione 5 Personagens</h2>
-    <div id="character-grid"></div>
-    <button id="btn-start-battle" class="hidden">Start Battle</button>
-  </div>
+<!-- Tela de Batalha -->
+<div id="battle-screen" class="screen hidden">
+  <video id="bg-video" autoplay loop muted>
+    <source src="img/arena/Arena - Erlking 3.mp4" type="video/mp4">
+  </video>
 
-  <!-- Tela de Batalha -->
-  <div id="battle-screen" class="screen hidden">
-    <canvas id="battle-canvas"></canvas>
-    <video id="bg-video" autoplay loop muted>
-       <source src="../Project Limbus/img/arena/Arena - Erlking 3.mp4" type="video/mp4">
-    </video>
-    <div id="skills-ui"></div>
-
-    <!-- UI de combate -->
-<div id="combat-ui">
-  <div id="player-team">
-
-    <div class="character" id="player1">
-      <img src="../Project Limbus/img/Sinners/10201_Faust_BaseAppearance/idle.gif" alt="Player 1">
-      <div class="health-bar"><div class="health-fill"></div></div>
-    </div>
-    <!-- Adicionar mais personagem eu acho? -->
-  </div>
-
-  <!-- Boss-->
-  <div id="enemy-team">
-    
-    <div class="character boss">
-      <img src="../Project Limbus/img/boss/Sancho/idle.gif" alt="Boss">
-      <div class="health-bar"><div class="health-fill"></div></div>
+  <!-- Times -->
+  <div id="combat-ui">
+    <div id="player-team"></div>
+    <div id="enemy-team">
+      <div class="character boss">
+        <img src="img/boss/Sancho/idle.gif" alt="Boss">
+        <div class="health-bar"><div class="health-fill"></div></div>
+      </div>
     </div>
   </div>
 
-  <!-- UI skills -->
+  <!-- Grade de Skills -->
   <div id="skills-ui-grid">
-    <div class="skills-grid">
-    
-      <img src="../Project Limbus/img/skill/skill1.png" class="skill-icon" alt="Skill 1">
-      <img src="../Project Limbus/img/skill/skill2.png" class="skill-icon" alt="Skill 2">
-      <!-- coloca mais depois seu baiano -->
-    </div>
-
+    <div id="skills-grid" class="skills-grid"></div>
+    <div id="portraits"></div>
     <button id="start-turn-btn">
-      <img src="../Project Limbus/img/BattleUI.png" alt="Start Turn">
+      <img src="img/BattleUI.png" alt="Start Turn">
     </button>
   </div>
 </div>
-
-  </div>
 
 </body>
 </html>

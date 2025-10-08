@@ -1,216 +1,425 @@
-/* Reset */
-body, html {
-  margin: 0;
-  padding: 0;
-  font-family: sans-serif;
-  overflow: hidden;
+/* =====================================================
+   styles.css — ajuste: boss maior + posições corrigidas
+   ===================================================== */
+
+:root {
+  /* ===== altere aqui para ajustar tudo ===== */
+  --arena-sprite-w: 100px;
+  /* largura dos sprites aliados (mantido conforme pediu) */
+  --arena-sprite-h: 100px;
+  /* altura dos sprites aliados */
+
+  /* boss tem tamanho próprio (maior que os aliados) */
+  --boss-sprite-w: 260px;
+  --boss-sprite-h: 400px;
+
+  /* posição vertical do player team (aumente para baixar os aliados) */
+  --player-top: 30%;
+  /* estava 18% -> agora 22% para empurrar os aliados pra baixo */
+
+  /* quanto o boss fica distante do final da tela (diminuir valor = boss mais para baixo) */
+  --enemy-right-offset: 80px;
+  --enemy-bottom-offset: 10%;
+  /* antes 12% -> 6% aproxima o boss do chão */
+
+  /* UI / skills / portraits */
+  --portrait-size: 56px;
+  --skills-icon-w: 44px;
+  --skills-icon-h: 44px;
+
+  /* boss coin (pequenas) */
+  --boss-coin-w: 28px;
+  --boss-coin-h: 28px;
+
+  --player-team-left: 100px;
+  --player-grid-gap-vert: 18px;
+  --player-grid-gap-hor: 10px;
+
+  --cols: 3;
 }
 
-/* Telas */
+/* RESET */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: sans-serif;
+  background: #000;
+  color: #fff
+}
+
+/* SCREENS / VIDEOS */
 .screen {
   position: absolute;
-  top: 0; left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: #111;
-  color: white;
+  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  transition: opacity 0.5s ease;
-  z-index: 1;
-}
-
-/* Vídeo da tela inicial */
-#start-bg-video {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  object-fit: cover;
-  z-index: 0;
-}
-
-/* Mensagem central da tela inicial */
-.start-message {
-  z-index: 1;
-  color: gold;
-  font-size: 32px;
-  font-weight: bold;
-  text-align: center;
-  text-shadow: 0 0 10px gold;
-  user-select: none;
-  animation: pulse-gold 2s infinite;
-}
-
-@keyframes pulse-gold {
-  0% {
-    text-shadow: 0 0 10px gold, 0 0 20px gold;
-    opacity: 1;
-  }
-  50% {
-    text-shadow: 0 0 20px #ffd700, 0 0 30px #ffd700;
-    opacity: 0.7;
-  }
-  100% {
-    text-shadow: 0 0 10px gold, 0 0 20px gold;
-    opacity: 1;
-  }
+  background: #111;
+  z-index: 1
 }
 
 .hidden {
   opacity: 0;
   pointer-events: none;
+  visibility: hidden
 }
 
-/* Seleção de personagens */
+#start-bg-video,
+#bg-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0
+}
+
+/* START MESSAGE */
+.start-message {
+  z-index: 2;
+  color: gold;
+  font-size: 32px;
+  font-weight: bold;
+  text-shadow: 0 0 10px gold;
+  user-select: none;
+  animation: pulse-gold 2s infinite
+}
+
+@keyframes pulse-gold {
+  0% {
+    opacity: 1
+  }
+
+  50% {
+    opacity: .7
+  }
+
+  100% {
+    opacity: 1
+  }
+}
+
+/* SELECTION */
 #character-grid {
   display: grid;
-  grid-template-columns: repeat(6, 100px); /* 6 colunas */
-  grid-template-rows: repeat(2, 100px);    /* 2 fileiras */
+  grid-template-columns: repeat(6, 100px);
+  grid-template-rows: repeat(2, 100px);
   gap: 10px;
-  margin: 20px;
+  margin: 20px
 }
 
 .character-card {
   width: 100px;
   height: 100px;
-  background-color: #333;
+  background: #333;
+  border-radius: 10px;
+  border: 2px solid #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  border: 2px solid white;
-  border-radius: 10px;
-  transition: 0.3s ease;
+  cursor: pointer
 }
 
 .character-card img {
-  max-width: 100%;
-  max-height: 100%;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
+  border-radius: 6px
 }
 
 .character-card.selected {
   border-color: gold;
-  box-shadow: 0 0 15px gold;
+  box-shadow: 0 0 15px rgba(255, 215, 0, .12)
 }
 
 .selected-characters {
   display: flex;
   gap: 10px;
   margin-top: 20px;
-  justify-content: center;
+  justify-content: center
 }
 
 .selected-characters img {
   width: 60px;
   height: 60px;
   border: 2px solid gold;
-  border-radius: 5px;
+  border-radius: 5px
 }
 
-/* Vídeo de fundo */
-#bg-video {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  object-fit: cover;
-  z-index: 0;
-}
-
-/* Canvas de batalha */
+/* CANVAS */
 canvas {
   position: absolute;
-  top: 0; left: 0;
+  inset: 0;
   width: 100vw;
   height: 100vh;
-  z-index: 1;
+  z-index: 1
 }
 
-/* UI de skills e retratos */
-#skills-ui {
+/* SKILLS UI */
+#skills-ui-grid {
   position: absolute;
-  bottom: 20px;
+  bottom: 36px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.skills-grid {
+  z-index: 6;
+  pointer-events: auto;
   display: grid;
-  grid-template-columns: repeat(5, 60px);
-  grid-template-rows: repeat(2, 60px);
-  gap: 10px;
+  grid-template-columns: auto 84px;
+  grid-template-rows: auto auto;
+  grid-column-gap: 14px;
+  align-items: center;
+  justify-items: center
 }
 
-.skills-grid img {
-  width: 60px;
-  height: 60px;
-  cursor: pointer;
+#skills-grid {
+  grid-column: 1;
+  grid-row: 1;
+  display: grid;
+  gap: 8px;
+  padding: 6px;
+  background: rgba(0, 0, 0, .08);
+  border-radius: 8px;
+  grid-template-columns: repeat(var(--cols, 1), var(--skills-icon-w));
+  grid-template-rows: repeat(2, var(--skills-icon-h));
+  justify-items: center
+}
+
+#skills-grid img,
+.skill-icon {
+  width: var(--skills-icon-w);
+  height: var(--skills-icon-h);
+  object-fit: cover;
+  border-radius: 6px;
+  transition: transform .12s, box-shadow .12s
+}
+
+#skills-grid img:hover {
+  transform: translateY(-6px)
+}
+
+.skill-selected {
+  box-shadow: 0 0 0 4px rgba(255, 215, 0, .18), 0 6px 18px rgba(255, 215, 0, .06);
+  transform: translateY(-8px) !important
 }
 
 #portraits {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
+  grid-column: 1;
+  grid-row: 2;
+  display: grid;
+  gap: 8px;
+  padding: 6px;
+  background: rgba(0, 0, 0, .06);
+  border-radius: 8px;
+  grid-template-columns: repeat(var(--cols, 1), var(--portrait-size));
+  grid-auto-rows: var(--portrait-size);
+  justify-items: center;
+  align-items: center
 }
 
-#portraits img {
-  width: 50px;
-  height: 50px;
+.portrait-wrapper {
+  position: relative;
+  width: var(--portrait-size);
+  height: var(--portrait-size)
+}
+
+.portrait-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 2px solid gold
+}
+
+.portrait-overlay {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  overflow: hidden;
+  display: none
+}
+
+.portrait-overlay img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover
+}
+
+#start-turn-btn {
+  grid-column: 2;
+  grid-row: 1/span 2;
+  align-self: center;
+  justify-self: center;
+  background: none;
+  border: none;
   cursor: pointer;
-  border: 2px solid white;
+  padding: 4px
 }
 
+#start-turn-btn img {
+  width: 64px;
+  height: 64px
+}
+
+/* COMBAT UI wrapper */
 #combat-ui {
   position: absolute;
-  top: 0; left: 0;
-  width: 100vw;
-  height: 100vh;
+  inset: 0;
   z-index: 3;
+  pointer-events: none
 }
 
+/* PLAYER TEAM (usando var --player-top para empurrar pra baixo) */
 #player-team {
   position: absolute;
-  left: 50px;
-  top: 30%;
+  left: var(--player-team-left);
+  top: var(--player-top);
+  /* aqui usamos a variável modificável */
+  width: calc((var(--arena-sprite-w)*3) + (var(--player-grid-gap-hor)*2));
+  display: grid;
+  grid-template-columns: repeat(3, var(--arena-sprite-w));
+  grid-auto-rows: var(--arena-sprite-h);
+  gap: var(--player-grid-gap-vert) var(--player-grid-gap-hor);
+  align-items: start;
+  justify-items: start;
+  z-index: 4;
+  pointer-events: auto;
+}
+
+/* personagem em célula (alianças) */
+#player-team .character {
+  width: var(--arena-sprite-w);
+  height: var(--arena-sprite-h);
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  position: relative !important;
+  overflow: visible;
+  background: transparent
 }
 
+#player-team .character img {
+  width: var(--arena-sprite-w);
+  height: var(--arena-sprite-h);
+  object-fit: contain;
+  display: block
+}
+
+#player-team .health-bar {
+  width: var(--arena-sprite-w);
+  height: 12px;
+  background: #333;
+  border: 1px solid #555;
+  border-radius: 6px;
+  margin-top: 6px;
+  overflow: hidden
+}
+
+#player-team .health-fill {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #ff4d4d, #c10000)
+}
+
+/* ENEMY / BOSS (posição e tamanho próprios) */
 #enemy-team {
   position: absolute;
-  right: 50px;
-  top: 35%;
+  right: var(--enemy-right-offset);
+  bottom: var(--enemy-bottom-offset);
+  /* reduzido para aproximar do chão */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 4;
+  pointer-events: auto;
 }
 
-.character.boss img {
-  width: auto; 
-  height: 120px;
+/* boss usa suas próprias variáveis de tamanho */
+#enemy-team .boss img {
+  width: var(--boss-sprite-w);
+  height: var(--boss-sprite-h);
+  object-fit: contain;
+  display: block;
 }
 
+/* boss healthbar alinhada à largura do boss */
+#enemy-team .health-bar {
+  width: var(--boss-sprite-w);
+  height: 12px;
+  background: #333;
+  border: 1px solid #555;
+  margin-top: 8px;
+  border-radius: 6px;
+  overflow: hidden
+}
+
+#enemy-team .health-fill {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #ff6b6b, #c40000)
+}
+
+/* boss coins: pequenas para não cobrir o boss */
+#enemy-team .skill-coins {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none
+}
+
+#enemy-team .skill-coins .coin-slot {
+  width: var(--boss-coin-w);
+  height: var(--boss-coin-h);
+  background: rgba(255, 255, 255, .03);
+  border-radius: 6px;
+  border: 2px dashed rgba(255, 255, 255, .08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden
+}
+
+#enemy-team .skill-coins .coin-slot img {
+  width: calc(var(--boss-coin-w) - 6px);
+  height: calc(var(--boss-coin-h) - 6px);
+  object-fit: cover
+}
+
+/* visual filled */
+.coin-slot.filled {
+  border-style: solid;
+  border-color: rgba(255, 215, 0, .9);
+  box-shadow: 0 6px 18px rgba(255, 215, 0, .06)
+}
+
+/* FALLBACKS */
 .character {
   position: relative;
 }
 
 .character img {
-  width: 80px;
-  height: auto;
+  display: block;
 }
 
 .health-bar {
   width: auto;
   height: 8px;
-  background-color: #333;
+  background: #333;
   border: 1px solid #555;
   margin-top: 5px;
 }
@@ -218,43 +427,5 @@ canvas {
 .health-fill {
   height: 100%;
   width: 100%;
-  background-color: red;
-}
-
-/* Skills UI */
-#skills-ui-grid {
-  position: absolute;
-  bottom: 30px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 20px;
-  align-items: center;
-}
-
-.skills-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 60px);
-  grid-template-rows: repeat(2, 60px);
-  gap: 10px;
-}
-
-.skill-icon {
-  width: 60px;
-  height: 60px;
-  border: 2px solid white;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-/* Botão roda */
-#start-turn-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-}
-
-#start-turn-btn img {
-  width: 80px;
-  height: 80px;
+  background: red;
 }
