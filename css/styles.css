@@ -10,8 +10,8 @@
   /* altura dos sprites aliados */
 
   /* boss tem tamanho próprio (maior que os aliados) */
-  --boss-sprite-w: 120px;
-  --boss-sprite-h: 150px;
+  --boss-sprite-w: 220px;
+  --boss-sprite-h: 260px;
 
   /* posição vertical do player team (aumente para baixar os aliados) */
   --player-top: 30%;

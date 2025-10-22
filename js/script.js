@@ -10,8 +10,10 @@ const bgVideo = document.getElementById("bg-video");
 const enemyTeam = document.getElementById("enemy-team");
 const startTurnBtn = document.getElementById("start-turn-btn");
 
-// Estado
+// ESTADO
 const selectedCharacters = [];
+let bossData = null;
+const BOSS_MAX_HP = 500;
 
 // Factory Skill
 function Skill(id, src, damage = 0, type = "generic", opts = {}) {
@@ -22,10 +24,34 @@ function Skill(id, src, damage = 0, type = "generic", opts = {}) {
     winGif: opts.winGif || null,
     hurtPng: opts.hurtPng || null,
     clashPngs: Array.isArray(opts.clashPngs) ? opts.clashPngs : (opts.clashPngs ? [opts.clashPngs] : []),
-    coinImg: opts.coinImg || null
+    coinImg: opts.coinImg || null,
+    basePower: opts.basePower || opts.damage || 0
   }, opts);
 }
 
+/* --------- util simples --------- */
+function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
+function ensureBattleOverlay() {
+  let ov = document.getElementById('battle-overlay');
+  if (!ov) {
+    ov = document.createElement('div'); ov.id = 'battle-overlay';
+    ov.style.position = 'absolute'; ov.style.left = '0'; ov.style.top = '0';
+    ov.style.width = '100%'; ov.style.height = '100%';
+    ov.style.pointerEvents = 'none'; ov.style.zIndex = '9999';
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML = '';
+  return ov;
+}
+function rollCoinsForSkill(skill) {
+  const coins = skill && typeof skill.coins === 'number' ? skill.coins : 1;
+  const coinBonus = skill && typeof skill.coinBonus === 'number' ? skill.coinBonus : 0;
+  let heads = 0;
+  for (let i = 0; i < coins; i++) if (Math.random() < 0.5) heads++;
+  return { heads, tails: coins - heads, totalBonus: heads * coinBonus };
+}
+
+const CLASH_GAP = 18; // menor = mais próximos
 
 const allCharacters = [
   {
@@ -359,7 +385,6 @@ function createSelectionGrid() {
 }
 createSelectionGrid();
 
-// telas
 startScreen.addEventListener('click', () => {
   startScreen.classList.add('hidden');
   selectionScreen.classList.remove('hidden');
@@ -371,55 +396,30 @@ btnStartBattle.addEventListener('click', () => {
   setupBattle();
 });
 
-// ----------------- SETUP BATTLE e BOSS DATA (mantém perfil/anim) -----------------
-let bossData = null;
+/* ----------------- setup battle & bossData ----------------- */
 function setupBattle() {
-  if (bgVideo && typeof bgVideo.play === 'function') bgVideo.play().catch(() => { });
+  if (bgVideo && typeof bgVideo.play === 'function') bgVideo.play().catch(()=>{});
   const bossNode = enemyTeam.querySelector('.boss');
   if (bossNode) {
-    // Cria objeto bossData a partir do DOM (faça override manual se quiser)
     const bossImgEl = bossNode.querySelector('img');
     bossData = bossData || {
       sprite: bossImgEl ? bossImgEl.src : './img/boss/How Wild/idle.gif',
-      portrait: bossImgEl ? bossImgEl.src : './img/boss/How Wild/idle.gif',
       moveImg: bossNode.dataset.moveImg || './img/boss/How Wild/moving.png',
       queuedSkills: bossNode.queuedSkills || [
-        // Boss
-        Skill("boss_s1", "./img/boss/How Wild/coin/skill1.png", 3, "boss",
-           { coins: 2, coinBonus: 4, 
-           coinImg: "./img/coins/coin_boss.png", 
-           clashPngs: ["./img/boss/How Wild/guard.png","./img/boss/How Wild/evade.png"], 
-           winGif: "./img/boss/How Wild/skill1.gif", 
-           hurtPng: "./img/boss/How Wild/hurt.png", 
-           basePower: 3 }),
-        Skill("boss_s2", "./img/boss/How Wild/coin/skill2.png", 5, "boss",
-           { coins: 3, coinBonus: 3, 
-           coinImg: "./img/coins/coin_boss.png", 
-           clashPngs: ["./img/boss/How Wild/guard.png","./img/boss/How Wild/evade.png"], 
-           winGif: "./img/boss/How Wild/skill2.gif", 
-           hurtPng: "./img/boss/How Wild/hurt.png", 
-           basePower: 5 }),
-        Skill("boss_s3", "./img/boss/How Wild/coin/skill3.png", 6, "boss",
-           { coins: 2, coinBonus: 6, 
-           coinImg: "./img/coins/coin_boss.png", 
-           clashPngs: ["./img/boss/How Wild/guard.png","./img/boss/How Wild/evade.png"], 
-           winGif: "./img/boss/How Wild/skill3.gif", 
-           hurtPng: "./img/boss/How Wild/hurt.png", 
-           basePower: 6 })
+        Skill("boss_s1","./img/boss/How Wild/coin/skill1.png",3,"boss",{coins:2,coinBonus:4,coinImg:"./img/coins/coin_boss.png",clashPngs:["./img/boss/How Wild/guard.png"],winGif:"./img/boss/How Wild/skill1.gif",hurtPng:"./img/boss/How Wild/hurt.png", basePower:3}),
+        Skill("boss_s2","./img/boss/How Wild/coin/skill2.png",5,"boss",{coins:3,coinBonus:3,coinImg:"./img/coins/coin_boss.png",clashPngs:["./img/boss/How Wild/guard.png"],winGif:"./img/boss/How Wild/skill2.gif",hurtPng:"./img/boss/How Wild/hurt.png", basePower:5}),
+        Skill("boss_s3","./img/boss/How Wild/coin/skill3.png",6,"boss",{coins:2,coinBonus:6,coinImg:"./img/coins/coin_boss.png",clashPngs:["./img/boss/How Wild/guard.png"],winGif:"./img/boss/How Wild/skill3.gif",hurtPng:"./img/boss/How Wild/hurt.png", basePower:6})
       ],
       coinCount: parseInt(bossNode.dataset.coinCount || '5', 10),
-      hp: typeof bossNode.hp === 'number' ? bossNode.hp : 500
+      hp: typeof bossNode.hp === 'number' ? bossNode.hp : BOSS_MAX_HP
     };
-    // garante que o <img> do boss use sprite definido
     if (bossImgEl && bossData.sprite) bossImgEl.src = bossData.sprite;
-    // seta dataset moveImg para clones lerem
     bossNode.dataset.moveImg = bossData.moveImg;
     bossNode.queuedSkills = bossData.queuedSkills.slice();
     bossNode.dataset.coinCount = bossData.coinCount;
     bossNode.hp = bossData.hp;
-    // por padrão flip se precisar (você controla)
-    // flipBoss(true); // descomente se quiser flip automático
   }
+
   renderPlayerTeam();
   renderSkillsUI();
   renderBossCoins();
@@ -427,28 +427,32 @@ function setupBattle() {
   updateStartButtonState();
 }
 
-// ----------------- RENDER PLAYER TEAM (corrige width saúde) -----------------
+/* ----------------- render player team / hp em px ----------------- */
 function renderPlayerTeam() {
   playerTeam.innerHTML = '';
   const rootStyles = getComputedStyle(document.documentElement);
-  const spriteW = rootStyles.getPropertyValue('--arena-sprite-w').trim() || '120px';
+  const spriteWstr = rootStyles.getPropertyValue('--arena-sprite-w').trim() || '120px';
+  const spriteWpx = parseInt(spriteWstr, 10) || 120;
+
   selectedCharacters.forEach((char, idx) => {
     const div = document.createElement('div');
     div.className = 'character';
     div.dataset.idx = idx;
     if (!char.alive) div.classList.add('dead-character');
-    // health-bar width explicit para evitar "espremido"
+
+    const fillPx = Math.round((Math.max(0,char.hp) / 100) * spriteWpx);
+
     div.innerHTML = `
       <img src="${char.sprite}" alt="${char.name}">
-      <div class="health-bar" style="width:${spriteW}">
-        <div class="health-fill" style="width:${Math.max(0, char.hp)}%"></div>
+      <div class="health-bar" style="width:${spriteWpx}px;">
+        <div class="health-fill" style="width:${fillPx}px"></div>
       </div>
     `;
     playerTeam.appendChild(div);
   });
 }
 
-// ----------------- RENDER SKILLS UI -----------------
+/* ----------------- render skills & portraits ----------------- */
 function renderSkillsUI() {
   skillsGrid.innerHTML = '';
   portraits.innerHTML = '';
@@ -459,7 +463,7 @@ function renderSkillsUI() {
   document.documentElement.style.setProperty('--cols', cols);
 
   const chosenPairs = selectedCharacters.map(char => {
-    const pool = Array.isArray(char.skills) && char.skills.length ? char.skills : [Skill('def', 'img/skill/skill1.png', 5)];
+    const pool = Array.isArray(char.skills) && char.skills.length ? char.skills : [Skill('def','img/skill/skill1.png',5)];
     const i1 = Math.floor(Math.random() * pool.length);
     let i2 = i1;
     if (pool.length > 1) while (i2 === i1) i2 = Math.floor(Math.random() * pool.length);
@@ -467,7 +471,7 @@ function renderSkillsUI() {
   });
 
   for (let c = 0; c < cols; c++) {
-    const s = chosenPairs[c] ? chosenPairs[c][0] : Skill('def', 'img/skill/skill1.png', 5);
+    const s = chosenPairs[c] ? chosenPairs[c][0] : Skill('def','img/skill/skill1.png',5);
     const img = document.createElement('img');
     img.src = s.src; img.className = 'skill-icon';
     img.dataset.col = c; img.dataset.skillId = s.id;
@@ -476,7 +480,7 @@ function renderSkillsUI() {
     skillsGrid.appendChild(img);
   }
   for (let c = 0; c < cols; c++) {
-    const s = chosenPairs[c] ? chosenPairs[c][1] : Skill('def2', 'img/skill/skill1.png', 5);
+    const s = chosenPairs[c] ? chosenPairs[c][1] : Skill('def2','img/skill/skill1.png',5);
     const img = document.createElement('img');
     img.src = s.src; img.className = 'skill-icon';
     img.dataset.col = c; img.dataset.skillId = s.id;
@@ -485,7 +489,6 @@ function renderSkillsUI() {
     skillsGrid.appendChild(img);
   }
 
-  // portraits
   selectedCharacters.forEach(char => {
     const wrapper = document.createElement('div'); wrapper.className = 'portrait-wrapper';
     const img = document.createElement('img'); img.src = char.portrait || char.sprite; img.alt = char.name;
@@ -501,7 +504,7 @@ function renderSkillsUI() {
   updateStartButtonState();
 }
 
-// ----------------- seleção toggle -----------------
+/* ---------- skill select helpers ---------- */
 function toggleSelectSkillForColumn(colIndex, skillObj, imgElement) {
   const char = selectedCharacters[colIndex];
   if (!char || !char.alive) return;
@@ -535,7 +538,7 @@ function updatePortraitOverlays() {
   });
 }
 
-// ----------------- Render boss coins (usa data coinCount) -----------------
+/* ----------------- boss coins UI ----------------- */
 function renderBossCoins() {
   const bossNode = enemyTeam.querySelector('.boss');
   if (!bossNode) return;
@@ -553,77 +556,52 @@ function renderBossCoins() {
   }
 }
 
-// ----------------- util -----------------
+/* ----------------- update start btn ----------------- */
 function allPlayersHaveSkills() { return selectedCharacters.length > 0 && selectedCharacters.every(c => c.alive && !!c.chosenSkill); }
 function updateStartButtonState() { if (!startTurnBtn) return; const ok = allPlayersHaveSkills(); startTurnBtn.disabled = !ok; startTurnBtn.style.opacity = ok ? '1' : '0.5'; }
 updateStartButtonState();
 
-function flipBoss(shouldFlip = true) {
-  const bossNode = enemyTeam.querySelector('.boss');
-  if (!bossNode) return;
-  const img = bossNode.querySelector('img');
-  if (!img) return;
-  if (shouldFlip) { img.classList.add('flipped'); img.style.transform = 'scaleX(-1)'; img.dataset.flip = 'true'; }
-  else { img.classList.remove('flipped'); img.style.transform = ''; delete img.dataset.flip; }
-}
-window.flipBoss = flipBoss;
-
-// ----------------- coin roll -----------------
-function rollCoinsForSkill(skill) {
-  const coins = skill && typeof skill.coins === 'number' ? skill.coins : 1;
-  const coinBonus = skill && typeof skill.coinBonus === 'number' ? skill.coinBonus : 0;
-  let heads = 0;
-  for (let i = 0; i < coins; i++) if (Math.random() < 0.5) heads++;
-  return { heads, tails: coins - heads, totalBonus: heads * coinBonus };
-}
-
-// ----------------- overlay helpers -----------------
-function ensureBattleOverlay() {
-  let ov = document.getElementById('battle-overlay');
-  if (!ov) {
-    ov = document.createElement('div'); ov.id = 'battle-overlay';
-    ov.style.position = 'absolute'; ov.style.left = '0'; ov.style.top = '0'; ov.style.width = '100%'; ov.style.height = '100%';
-    ov.style.pointerEvents = 'none'; ov.style.zIndex = '9999';
-    document.body.appendChild(ov);
-  }
-  ov.innerHTML = ''; return ov;
-}
-function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-// ----------------- clones e animação (cria clones do moveImg ou sprite) -----------------
-function createCloneFromChar(charObj, isBoss = false) {
+/* ----------------- CRIAR CLONE ALINHADO: usa img original quando disponível ----------------- */
+function createCloneFromChar(charObj, isBoss = false, originalImgEl = null) {
   const rootStyles = getComputedStyle(document.documentElement);
   const rawW = isBoss ? (rootStyles.getPropertyValue('--boss-sprite-w') || rootStyles.getPropertyValue('--arena-sprite-w')) : rootStyles.getPropertyValue('--arena-sprite-w');
   const rawH = isBoss ? (rootStyles.getPropertyValue('--boss-sprite-h') || rootStyles.getPropertyValue('--arena-sprite-h')) : rootStyles.getPropertyValue('--arena-sprite-h');
-  const w = (rawW || '120px').toString().trim();
-  const h = (rawH || '120px').toString().trim();
+  const defaultW = (rawW || '120px').toString().trim();
+  const defaultH = (rawH || '120px').toString().trim();
 
   const img = document.createElement('img');
   img.src = charObj.moveImg || charObj.sprite || (isBoss ? (bossData && bossData.sprite) || './img/boss/How Wild/idle.gif' : 'img/skill/skill1.png');
   img.className = 'battle-clone';
   img.style.position = 'absolute';
-  img.style.width = (w.endsWith('px') ? w : (parseInt(w, 10) + 'px'));
-  img.style.height = (h.endsWith('px') ? h : (parseInt(h, 10) + 'px'));
   img.style.objectFit = 'contain';
-  img.style.left = (isBoss ? window.innerWidth * 0.75 : window.innerWidth * 0.25) + 'px';
-  img.style.top = (window.innerHeight * 0.18) + 'px';
   img.style.pointerEvents = 'none';
-  if (isBoss) {
-    const bossNode = enemyTeam.querySelector('.boss');
-    if (bossNode) {
-      const bossImg = bossNode.querySelector('img');
-      if (bossImg && bossImg.dataset.flip === 'true') { img.style.transform = 'scaleX(-1)'; img.classList.add('flipped'); }
-    }
+
+  if (originalImgEl) {
+    const rect = originalImgEl.getBoundingClientRect();
+    img.style.left = rect.left + 'px';
+    img.style.top = rect.top + 'px';
+    img.style.width = rect.width + 'px';
+    img.style.height = rect.height + 'px';
+  } else {
+    img.style.width = defaultW.endsWith('px') ? defaultW : (parseInt(defaultW, 10) + 'px');
+    img.style.height = defaultH.endsWith('px') ? defaultH : (parseInt(defaultH, 10) + 'px');
+    img.style.left = (isBoss ? window.innerWidth * 0.75 : window.innerWidth * 0.25) + 'px';
+    img.style.top = (window.innerHeight * 0.18) + 'px';
   }
+
+  // OBS: removi qualquer flip automático aqui; vc controla no DOM manualmente
   return img;
 }
+
+/* ----------------- animação simples ----------------- */
 function animateTo(el, left, top, duration = 600) {
   return new Promise(res => {
-    el.style.transition = `left ${duration}ms ease, top ${duration}ms ease, transform ${duration}ms ease, opacity ${Math.max(120, duration / 2)}ms`;
+    el.style.transition = `left ${duration}ms ease, top ${duration}ms ease, transform ${duration}ms ease, opacity ${Math.max(120, duration/2)}ms`;
     requestAnimationFrame(() => { el.style.left = left + 'px'; el.style.top = top + 'px'; });
     setTimeout(() => res(), duration + 20);
   });
 }
+
 function createPowerLabel(value, left, top) {
   const label = document.createElement('div');
   label.className = 'battle-power-label';
@@ -634,6 +612,21 @@ function createPowerLabel(value, left, top) {
   document.getElementById('battle-overlay').appendChild(label);
   return label;
 }
+// --- helper para forçar tamanho/posição igual ao rect do clone ---
+function sizeElementToRect(el, rect) {
+  el.style.position = 'absolute';
+  el.style.left = rect.left + 'px';
+  el.style.top = rect.top + 'px';
+  el.style.width = rect.width + 'px';
+  el.style.height = rect.height + 'px';
+  el.style.objectFit = 'contain';
+  el.style.maxWidth = 'none';
+  el.style.maxHeight = 'none';
+  el.style.imageRendering = 'auto';
+  el.style.pointerEvents = 'none';
+}
+
+// --- showCoinRow (necessário para UI de coins durante clash) ---
 function showCoinRow(skill) {
   const cont = document.createElement('div');
   cont.style.display = 'flex'; cont.style.gap = '6px'; cont.style.alignItems = 'center';
@@ -647,37 +640,31 @@ function showCoinRow(skill) {
   return cont;
 }
 
-// ----------------- Lógica do CLASH (corrigida para atacar cada personagem em order) -----------------
+/* ----------------- fluxo principal de clash ----------------- */
 async function startClashSequence() {
   if (!selectedCharacters.length) { alert('Nenhum personagem selecionado'); return; }
   if (!selectedCharacters.some(c => c.alive && c.chosenSkill)) { alert('Selecione as skills de todos os personagens vivos'); return; }
 
-  // lock UI
   skillsGrid.style.visibility = 'hidden';
-  startTurnBtn.disabled = true;
-  startTurnBtn.style.opacity = 0.5;
+  startTurnBtn.disabled = true; startTurnBtn.style.opacity = 0.5;
   skillsGrid.querySelectorAll('img').forEach(i => i.style.pointerEvents = 'none');
 
   const overlay = ensureBattleOverlay();
   const bossNode = enemyTeam.querySelector('.boss');
   if (!bossNode) { console.error('Boss não encontrado'); return; }
-  bossNode.hp = typeof bossNode.hp === 'number' ? bossNode.hp : (bossData ? bossData.hp : 500);
+  bossNode.hp = typeof bossNode.hp === 'number' ? bossNode.hp : (bossData ? bossData.hp : BOSS_MAX_HP);
 
-  // número de ataques do boss por turno
-  const bossAttacksTotal = parseInt(bossNode.dataset.coinCount || '5', 10);
-  let bossAttacksLeft = bossAttacksTotal;
+  let bossAttacksLeft = parseInt(bossNode.dataset.coinCount || '5', 10);
 
-  // targets = ordem dos personagens (cada um que está vivo e com skill escolhida)
+  // fila de alvos: todos os vivos que escolheram skill
   const targetQueue = selectedCharacters.map((c, i) => ({ char: c, idx: i })).filter(t => t.char.alive && t.char.chosenSkill);
 
-  // primeiro: percorrer targetQueue e para cada executar clash até as investidas do boss acabarem
   for (let t = 0; t < targetQueue.length && bossAttacksLeft > 0; t++) {
     const { char: playerChar, idx: playerIdx } = targetQueue[t];
     if (!playerChar || !playerChar.alive || !playerChar.chosenSkill) continue;
 
-    const bossSkill = (bossNode.queuedSkills && bossNode.queuedSkills[0]) || Skill('b_def', 'img/skill/skill1.png', 8, 'boss', { coins: 2, coinBonus: 2, basePower: 20 });
+    const bossSkill = (bossNode.queuedSkills && bossNode.queuedSkills[0]) || Skill('b_def','img/skill/skill1.png',8,'boss',{coins:2});
     await performClashAgainstPlayer(playerIdx, bossSkill, overlay, bossNode);
-    // consumir um ataque do boss e a skill enfileirada
     bossAttacksLeft--;
     if (bossNode.queuedSkills && bossNode.queuedSkills.length) bossNode.queuedSkills.shift();
     renderBossCoins();
@@ -686,12 +673,12 @@ async function startClashSequence() {
     await wait(350);
   }
 
-  // se o boss ainda tiver ataques sobrando, ele acerta aleatoriamente personagens vivos (sem clash)
+  // ataques restantes do boss (sem clash) -> atingem aleatoriamente
   while (bossAttacksLeft > 0) {
     const alivePlayers = selectedCharacters.map((c, i) => ({ c, i })).filter(x => x.c.alive);
     if (!alivePlayers.length) break;
     const pick = alivePlayers[Math.floor(Math.random() * alivePlayers.length)];
-    const bossSkill = (bossNode.queuedSkills && bossNode.queuedSkills[0]) || Skill('b_def', 'img/skill/skill1.png', 8, 'boss', { coins: 2, coinBonus: 2, basePower: 20 });
+    const bossSkill = (bossNode.queuedSkills && bossNode.queuedSkills[0]) || Skill('b_def','img/skill/skill1.png',8,'boss',{coins:2});
     await bossDirectHit(pick.i, bossSkill, overlay, bossNode);
     bossAttacksLeft--;
     if (bossNode.queuedSkills && bossNode.queuedSkills.length) bossNode.queuedSkills.shift();
@@ -703,10 +690,9 @@ async function startClashSequence() {
 
   overlay.remove();
   skillsGrid.querySelectorAll('img').forEach(i => i.style.pointerEvents = 'auto');
-  startTurnBtn.disabled = false;
-  startTurnBtn.style.opacity = 1;
+  startTurnBtn.disabled = false; startTurnBtn.style.opacity = 1;
 
-  // reset chosen skills de vivos (opcional)
+  // reset escolhido dos vivos
   selectedCharacters.forEach(c => { if (c.alive) c.chosenSkill = null; });
   skillsGrid.style.visibility = 'visible';
   renderSkillsUI();
@@ -715,88 +701,139 @@ async function startClashSequence() {
   updatePortraitOverlays();
 }
 
-// ----------------- boss golpe direto (sem clash) -----------------
+/* ----------------- boss golpe direto (movimento -> desaparece -> winGif) ----------------- */
 async function bossDirectHit(playerIdx, bossSkill, overlay, bossNode) {
   const playerChar = selectedCharacters[playerIdx];
   if (!playerChar || !playerChar.alive) return;
 
-  const pClone = createCloneFromChar(playerChar, false);
-  const bClone = createCloneFromChar({ moveImg: bossNode.dataset.moveImg, sprite: bossNode.querySelector('img') ? bossNode.querySelector('img').src : null }, true);
+  // pega elementos originais para alinhamento
+  const playerCells = Array.from(document.querySelectorAll('#player-team .character'));
+  const origPlayerEl = playerCells[playerIdx] ? playerCells[playerIdx].querySelector('img') : null;
+  const bossOrigImg = bossNode.querySelector('img');
+
+  // clones posicionados sobre originais
+  const pClone = createCloneFromChar(playerChar, false, origPlayerEl);
+  const bClone = createCloneFromChar({ moveImg: bossNode.dataset.moveImg, sprite: bossOrigImg ? bossOrigImg.src : null }, true, bossOrigImg);
+
+  // esconder originais
+  if (origPlayerEl) origPlayerEl.style.visibility = 'hidden';
+  if (bossOrigImg) bossOrigImg.style.visibility = 'hidden';
 
   overlay.appendChild(pClone); overlay.appendChild(bClone);
 
-  // posicionar
+  // movimento até o centro
   const centerX = window.innerWidth / 2;
   const rootStyles = getComputedStyle(document.documentElement);
   const w = parseInt(rootStyles.getPropertyValue('--arena-sprite-w')) || 120;
   const pTargetLeft = centerX - (w + 90);
   const bTargetLeft = centerX + 60;
-  const targetTop = window.innerHeight * 0.45 - (parseInt(rootStyles.getPropertyValue('--arena-sprite-h')) || 120) / 2;
+  const targetTop = window.innerHeight * 0.45 - (parseInt(rootStyles.getPropertyValue('--arena-sprite-h')) || 120)/2;
 
   await Promise.all([animateTo(pClone, pTargetLeft, targetTop, 420), animateTo(bClone, bTargetLeft, targetTop, 420)]);
 
-  // boss win visual
+  // ao chegar: remover clones e exibir winGif do boss centralizado sobre a área do boss
   if (bossSkill.winGif) {
+    // posicao do boss clone antes de remover
+    const rect = bClone.getBoundingClientRect();
+    pClone.remove(); bClone.remove();
+
     const winEl = document.createElement('img'); winEl.src = bossSkill.winGif;
-    // sobrepor centralizado sobre clones
-    winEl.style.position = 'absolute';
-    winEl.style.left = ((pTargetLeft + bTargetLeft) / 2) + 'px';
-    winEl.style.top = (targetTop - 40) + 'px';
-    winEl.style.transform = 'translateX(-50%)';
-    winEl.style.width = '260px'; winEl.style.zIndex = 10020;
-    overlay.appendChild(winEl); setTimeout(() => winEl.remove(), 1000);
+    sizeElementToRect(winEl, rect);
+    winEl.style.zIndex = 10020;
+    overlay.appendChild(winEl);
+    setTimeout(() => winEl.remove(), 1000);
+  } else {
+    pClone.remove(); bClone.remove();
   }
 
-  // aplicar dano fixo
+  // aplica dano
   const dmg = bossSkill.damage || 0;
   playerChar.hp = Math.max(0, (playerChar.hp || 100) - dmg);
   if (playerChar.hp <= 0) { playerChar.alive = false; playerChar.chosenSkill = null; }
-  const playerCells = Array.from(document.querySelectorAll('#player-team .character'));
-  const playerFill = playerCells[playerIdx] ? playerCells[playerIdx].querySelector('.health-fill') : null;
-  if (playerFill) playerFill.style.width = Math.max(0, (playerChar.hp / 100) * 100) + '%';
+
+  // atualiza barra do jogador (px)
+  const rootStyles2 = getComputedStyle(document.documentElement);
+  const spriteWstr = rootStyles2.getPropertyValue('--arena-sprite-w').trim() || '120px';
+  const spriteWpx = parseInt(spriteWstr, 10) || 120;
+  const playerCellsNow = Array.from(document.querySelectorAll('#player-team .character'));
+  const playerFill = playerCellsNow[playerIdx] ? playerCellsNow[playerIdx].querySelector('.health-fill') : null;
+  if (playerFill) playerFill.style.width = Math.round((playerChar.hp/100)*spriteWpx) + 'px';
 
   await wait(700);
-  pClone.style.opacity = '0'; bClone.style.opacity = '0';
-  setTimeout(() => { pClone.remove(); bClone.remove(); }, 380);
+
+  if (origPlayerEl) origPlayerEl.style.visibility = playerChar.alive ? 'visible' : 'hidden';
+  if (bossOrigImg) bossOrigImg.style.visibility = bossNode.hp > 0 ? 'visible' : 'hidden';
   updatePortraitOverlays();
 }
 
-// ----------------- perform clash (player vs bossSkill) -----------------
+/* ----------------- perform clash (movimento -> remover -> clashPNGs -> decidir -> winGif/hurt) ----------------- */
 async function performClashAgainstPlayer(playerIdx, bossSkill, overlay, bossNode) {
   const playerChar = selectedCharacters[playerIdx];
   if (!playerChar || !playerChar.alive || !playerChar.chosenSkill) return;
 
-  // esconder originais para evitar duplicação
+  // originais para alinhamento
   const playerCells = Array.from(document.querySelectorAll('#player-team .character'));
   const origPlayerEl = playerCells[playerIdx] ? playerCells[playerIdx].querySelector('img') : null;
   const bossOrigImg = bossNode.querySelector('img');
+
+  // ocultar originais
   if (origPlayerEl) origPlayerEl.style.visibility = 'hidden';
   if (bossOrigImg) bossOrigImg.style.visibility = 'hidden';
 
-  // clones
-  const pClone = createCloneFromChar(playerChar, false);
-  const bClone = createCloneFromChar({ moveImg: bossNode.dataset.moveImg, sprite: bossOrigImg ? bossOrigImg.src : null }, true);
+  // clones de movimento posicionados exatamente sobre os originais se possível
+  const pClone = createCloneFromChar(playerChar, false, origPlayerEl);
+  const bClone = createCloneFromChar({ moveImg: bossNode.dataset.moveImg, sprite: bossOrigImg ? bossOrigImg.src : null }, true, bossOrigImg);
 
   overlay.appendChild(pClone); overlay.appendChild(bClone);
 
-  // target positions
+  // mover para centro (fase de movimento)
   const centerX = window.innerWidth / 2;
   const rootStyles = getComputedStyle(document.documentElement);
   const w = parseInt(rootStyles.getPropertyValue('--arena-sprite-w')) || 120;
   const pTargetLeft = centerX - (w + 90);
   const bTargetLeft = centerX + 60;
-  const targetTop = window.innerHeight * 0.45 - (parseInt(rootStyles.getPropertyValue('--arena-sprite-h')) || 120) / 2;
+  const targetTop = window.innerHeight * 0.45 - (parseInt(rootStyles.getPropertyValue('--arena-sprite-h')) || 120)/2;
 
   await Promise.all([animateTo(pClone, pTargetLeft, targetTop, 600), animateTo(bClone, bTargetLeft, targetTop, 600)]);
 
-  // base labels (mostramos basePower se existir senão damage)
-  const playerSkill = playerChar.chosenSkill;
-  const playerBase = (playerSkill.basePower || playerSkill.damage || 0);
-  const bossBase = (bossSkill.basePower || bossSkill.damage || 0);
-  const playerLabel = createPowerLabel(playerBase, pTargetLeft + 50, targetTop - 30);
-  const bossLabel = createPowerLabel(bossBase, bTargetLeft + 50, targetTop - 30);
+  // ao chegar: removemos os clones de movimento E substituimos por imagens de clash (PNG) que ocupam o MESMO rect
+  const pRect = pClone.getBoundingClientRect();
+  const bRect = bClone.getBoundingClientRect();
 
-  // coin rows (visuais)
+  // removemos clones de movimento (substituição visual)
+  pClone.remove(); bClone.remove();
+
+  // cria elementos clash (um para player, um para boss) - usar pngs aleatórios se existirem
+  const playerSkill = playerChar.chosenSkill;
+  const playerClashSrc = (playerSkill.clashPngs && playerSkill.clashPngs.length) ? playerSkill.clashPngs[Math.floor(Math.random()*playerSkill.clashPngs.length)] : null;
+  const bossClashSrc = (bossSkill.clashPngs && bossSkill.clashPngs.length) ? bossSkill.clashPngs[Math.floor(Math.random()*bossSkill.clashPngs.length)] : null;
+
+  const pClashEl = document.createElement('img');
+  pClashEl.style.position = 'absolute';
+  pClashEl.style.left = pRect.left + 'px';
+  pClashEl.style.top = pRect.top + 'px';
+  pClashEl.style.width = pRect.width + 'px';
+  pClashEl.style.height = pRect.height + 'px';
+  pClashEl.style.objectFit = 'contain';
+  pClashEl.style.zIndex = 10015;
+  if (playerClashSrc) pClashEl.src = playerClashSrc; else pClashEl.src = playerSkill.winGif || playerSkill.hurtPng || playerChar.moveImg || playerChar.sprite;
+  overlay.appendChild(pClashEl);
+
+  const bClashEl = document.createElement('img');
+  bClashEl.style.position = 'absolute';
+  bClashEl.style.left = bRect.left + 'px';
+  bClashEl.style.top = bRect.top + 'px';
+  bClashEl.style.width = bRect.width + 'px';
+  bClashEl.style.height = bRect.height + 'px';
+  bClashEl.style.objectFit = 'contain';
+  bClashEl.style.zIndex = 10015;
+  if (bossClashSrc) bClashEl.src = bossClashSrc; else bClashEl.src = bossSkill.winGif || bossSkill.hurtPng || bossNode.dataset.moveImg || (bossOrigImg ? bossOrigImg.src : '');
+  overlay.appendChild(bClashEl);
+
+  // mostrar linhas de coins e labels
+  const playerLabel = createPowerLabel(playerSkill.basePower || playerSkill.damage || 0, pRect.left + pRect.width/2, pRect.top - 10);
+  const bossLabel = createPowerLabel(bossSkill.basePower || bossSkill.damage || 0, bRect.left + bRect.width/2, bRect.top - 10);
+
   const centerRow = document.createElement('div');
   centerRow.style.position = 'absolute';
   centerRow.style.left = centerX + 'px';
@@ -808,115 +845,102 @@ async function performClashAgainstPlayer(playerIdx, bossSkill, overlay, bossNode
 
   const pCoinsRow = showCoinRow(playerSkill);
   const bCoinsRow = showCoinRow(bossSkill);
-  centerRow.appendChild(pCoinsRow);
-  centerRow.appendChild(bCoinsRow);
+  centerRow.appendChild(pCoinsRow); centerRow.appendChild(bCoinsRow);
 
-  // clash pngs: posicionar absoluto na mesma área dos clones (para manter alinhamento e tamanho)
-  const clashes = 1 + Math.floor(Math.random() * 3);
-  for (let c = 0; c < clashes; c++) {
-    // para cada imagem de clash, colocamos um elemento absoluto sobre o clone do respectivo lado
-    if (playerSkill.clashPngs && playerSkill.clashPngs.length) {
-      const src = playerSkill.clashPngs[Math.floor(Math.random() * playerSkill.clashPngs.length)];
-      const im = document.createElement('img'); im.src = src;
-      im.style.position = 'absolute';
-      im.style.left = (pTargetLeft + 10) + 'px';
-      im.style.top = (targetTop + 10) + 'px';
-      im.style.width = pClone.style.width || '80px';
-      im.style.zIndex = 10015;
-      overlay.appendChild(im);
-      setTimeout(() => im.remove(), 350);
-    }
-    if (bossSkill.clashPngs && bossSkill.clashPngs.length) {
-      const src2 = bossSkill.clashPngs[Math.floor(Math.random() * bossSkill.clashPngs.length)];
-      const im2 = document.createElement('img'); im2.src = src2;
-      im2.style.position = 'absolute';
-      im2.style.left = (bTargetLeft + 10) + 'px';
-      im2.style.top = (targetTop + 10) + 'px';
-      im2.style.width = bClone.style.width || '80px';
-      im2.style.zIndex = 10015;
-      overlay.appendChild(im2);
-      setTimeout(() => im2.remove(), 350);
-    }
-    await wait(360);
+  // anima alguns ciclos visuais de clash (apenas efeitos)
+  const cycles = 1 + Math.floor(Math.random()*2);
+  for (let c = 0; c < cycles; c++) {
+    // pequeno "pulse" de scale
+    pClashEl.style.transform = 'scale(1.06)';
+    bClashEl.style.transform = 'scale(1.06)';
+    await wait(120);
+    pClashEl.style.transform = 'scale(1)';
+    bClashEl.style.transform = 'scale(1)';
+    await wait(120);
   }
 
-  // roll coins
+  // roll
   const pRoll = rollCoinsForSkill(playerSkill);
   const bRoll = rollCoinsForSkill(bossSkill);
-  // final power — usuario pediu separar power (para decidir vencedor) e damage (fixo)
   const finalPlayerPower = (playerSkill.basePower || playerSkill.damage || 0) + (pRoll.totalBonus || 0);
   const finalBossPower = (bossSkill.basePower || bossSkill.damage || 0) + (bRoll.totalBonus || 0);
 
-  // animate heads/tails on coin rows
+  // animate coins visuals
   const pSlots = pCoinsRow.querySelectorAll('.battle-coin');
-  for (let i = 0; i < pSlots.length; i++) { const s = pSlots[i]; if (i < pRoll.heads) s.classList.add('head'); s.style.transform = 'scale(1.06)'; setTimeout(() => s.style.transform = 'scale(1)', 180 + i * 40); }
+  for (let i = 0; i < pSlots.length; i++) { const s = pSlots[i]; if (i < pRoll.heads) s.classList.add('head'); s.style.transform='scale(1.06)'; setTimeout(()=>s.style.transform='scale(1)',180+i*40); }
   const bSlots = bCoinsRow.querySelectorAll('.battle-coin');
-  for (let i = 0; i < bSlots.length; i++) { const s = bSlots[i]; if (i < bRoll.heads) s.classList.add('head'); s.style.transform = 'scale(1.06)'; setTimeout(() => s.style.transform = 'scale(1)', 180 + i * 40); }
+  for (let i = 0; i < bSlots.length; i++) { const s = bSlots[i]; if (i < bRoll.heads) s.classList.add('head'); s.style.transform='scale(1.06)'; setTimeout(()=>s.style.transform='scale(1)',180+i*40); }
 
   await wait(520);
   playerLabel.textContent = finalPlayerPower;
   bossLabel.textContent = finalBossPower;
   await wait(380);
 
-  // decide vencedor por power do clash; dano aplicado = skill.damage (fixo)
   const winner = finalPlayerPower >= finalBossPower ? 'player' : 'boss';
 
+  // remover clashPNGs e mostrar resultado: winGif do vencedor, hurt do perdedor
+  // usamos os rects calculados para posicionar exatamente o resultado
+  pClashEl.remove(); bClashEl.remove();
+
   if (winner === 'player') {
-    // player win: sobrepor GIF do player (centralizado sobre clones)
+    // mostrar winGif do player sobre sua área
     if (playerSkill.winGif) {
-      const winEl = document.createElement('img'); winEl.src = playerSkill.winGif;
-      winEl.style.position = 'absolute';
-      winEl.style.left = ((pTargetLeft + bTargetLeft) / 2) + 'px';
-      winEl.style.top = (targetTop - 40) + 'px';
-      winEl.style.transform = 'translateX(-50%)';
-      winEl.style.width = '260px'; winEl.style.zIndex = 10030;
-      overlay.appendChild(winEl); setTimeout(() => winEl.remove(), 1100);
+      const win = document.createElement('img'); win.src = playerSkill.winGif;
+      sizeElementToRect(win, pRect);
+      win.style.zIndex = 10030;
+      overlay.appendChild(win); setTimeout(()=>win.remove(), 1100);
     }
+    // mostrar hurt no boss (se houver)
     if (bossSkill.hurtPng) {
       const hurt = document.createElement('img'); hurt.src = bossSkill.hurtPng;
-      hurt.style.position = 'absolute'; hurt.style.left = (bTargetLeft - 10) + 'px'; hurt.style.top = (targetTop - 40) + 'px';
-      hurt.style.width = '180px'; hurt.style.zIndex = 10025;
-      overlay.appendChild(hurt); setTimeout(() => hurt.remove(), 1100);
+      sizeElementToRect(hurt, bRect);
+      hurt.style.zIndex = 10025;
+      overlay.appendChild(hurt); setTimeout(()=>hurt.remove(), 1100);
     }
-    // aplica dano na boss HP (damage fixo)
+    // aplica dano fixo ao boss
     const dmg = playerSkill.damage || 0;
-    bossNode.hp = Math.max(0, (bossNode.hp || 500) - dmg);
+    bossNode.hp = Math.max(0, (bossNode.hp || BOSS_MAX_HP) - dmg);
     const bossFill = bossNode.querySelector('.health-fill');
-    if (bossFill) bossFill.style.width = Math.max(0, (bossNode.hp / 500) * 100) + '%';
+    if (bossFill) {
+      const rootStyles2 = getComputedStyle(document.documentElement);
+      const bossWstr = rootStyles2.getPropertyValue('--boss-sprite-w').trim() || '120px';
+      const bossWpx = parseInt(bossWstr, 10) || 120;
+      bossFill.style.width = Math.round((bossNode.hp / BOSS_MAX_HP) * bossWpx) + 'px';
+    }
   } else {
-    // boss win: sobrepor GIF do boss
+    // boss vence
     if (bossSkill.winGif) {
-      const winEl = document.createElement('img'); winEl.src = bossSkill.winGif;
-      winEl.style.position = 'absolute';
-      winEl.style.left = ((pTargetLeft + bTargetLeft) / 2) + 'px';
-      winEl.style.top = (targetTop - 40) + 'px';
-      winEl.style.transform = 'translateX(-50%)';
-      winEl.style.width = '260px'; winEl.style.zIndex = 10030;
-      overlay.appendChild(winEl); setTimeout(() => winEl.remove(), 1100);
+      const win = document.createElement('img'); win.src = bossSkill.winGif;
+      sizeElementToRect(win, bRect);
+      win.style.zIndex = 10030;
+      overlay.appendChild(win); setTimeout(()=>win.remove(), 1100);
     }
     if (playerSkill.hurtPng) {
       const hurt = document.createElement('img'); hurt.src = playerSkill.hurtPng;
-      hurt.style.position = 'absolute'; hurt.style.left = (pTargetLeft + 10) + 'px'; hurt.style.top = (targetTop - 40) + 'px';
-      hurt.style.width = '160px'; hurt.style.zIndex = 10025;
-      overlay.appendChild(hurt); setTimeout(() => hurt.remove(), 1100);
+      sizeElementToRect(hurt, pRect);
+      hurt.style.zIndex = 10025;
+      overlay.appendChild(hurt); setTimeout(()=>hurt.remove(), 1100);
     }
-    // aplica dano fixo do boss no jogador
+    // aplica dano fixo no jogador
     const dmg = bossSkill.damage || 0;
     playerChar.hp = Math.max(0, (playerChar.hp || 100) - dmg);
     if (playerChar.hp <= 0) { playerChar.alive = false; playerChar.chosenSkill = null; }
-    const playerCells = Array.from(document.querySelectorAll('#player-team .character'));
-    const playerFill = playerCells[playerIdx] ? playerCells[playerIdx].querySelector('.health-fill') : null;
-    if (playerFill) playerFill.style.width = Math.max(0, (playerChar.hp / 100) * 100) + '%';
+    // atualizar barra do jogador (px)
+    const rootSt = getComputedStyle(document.documentElement);
+    const spriteWstr = rootSt.getPropertyValue('--arena-sprite-w').trim() || '120px';
+    const spriteWpx = parseInt(spriteWstr, 10) || 120;
+    const playerCellsNow = Array.from(document.querySelectorAll('#player-team .character'));
+    const playerFill = playerCellsNow[playerIdx] ? playerCellsNow[playerIdx].querySelector('.health-fill') : null;
+    if (playerFill) playerFill.style.width = Math.round((playerChar.hp/100)*spriteWpx) + 'px';
   }
 
   await wait(900);
 
-  // fade out clones e restaurar originais
-  pClone.style.transition = 'opacity 360ms ease, transform 360ms';
-  bClone.style.transition = 'opacity 360ms ease, transform 360ms';
-  pClone.style.opacity = '0'; bClone.style.opacity = '0';
-  setTimeout(() => { pClone.remove(); bClone.remove(); if (origPlayerEl) origPlayerEl.style.visibility = 'visible'; if (bossOrigImg) bossOrigImg.style.visibility = 'visible'; }, 420);
+  // restaurar originais
+  if (origPlayerEl) origPlayerEl.style.visibility = playerChar.alive ? 'visible' : 'hidden';
+  if (bossOrigImg) bossOrigImg.style.visibility = bossNode.hp > 0 ? 'visible' : 'hidden';
 
+  // limpeza UI
   centerRow.remove();
   playerLabel.remove();
   bossLabel.remove();
@@ -925,7 +949,7 @@ async function performClashAgainstPlayer(playerIdx, bossSkill, overlay, bossNode
   updatePortraitOverlays();
 }
 
-// ----------------- start botão -----------------
+/* ----------------- start turn handler ----------------- */
 if (startTurnBtn) {
   startTurnBtn.addEventListener('click', () => {
     if (!selectedCharacters.length) { alert('Selecione personagens antes.'); return; }
@@ -934,8 +958,9 @@ if (startTurnBtn) {
   });
 }
 
-// ----------------- debug -----------------
+/* ----------------- debug export ----------------- */
 window._debug = {
-  selectedCharacters, allCharacters, renderPlayerTeam, renderSkillsUI, renderBossCoins, updatePortraitOverlays,
-  flipBoss, startClashSequence, bossData
+  selectedCharacters, allCharacters,
+  renderPlayerTeam, renderSkillsUI, renderBossCoins, updatePortraitOverlays,
+  startClashSequence, bossData
 };
